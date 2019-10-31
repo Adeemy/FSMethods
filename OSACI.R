@@ -3,7 +3,7 @@
 ##
 ## Paper: "New feature selection methods based on opposition-based learning and 
 ##         self-adaptive cohort intelligence for predicting patient no-shows"
-## Authors: Mohammed Aladeemy, Linda Adwan, Amy Booth, Mohammad T.Khasawneh, and Srikanth Poranki
+## Authors: Mohammed Aladeemy, Linda Adwan, Amy Booth, Mohammad T. Khasawneh, and Srikanth Poranki
 ## Corresponding author: Mohammed Aladeemy (mohammed.aladeemy@gmail.com)
 ## DOI: https://doi.org/10.1016/j.asoc.2019.105866
 ##################################################################################################
@@ -14,8 +14,8 @@ library(caret)
 library(doParallel)
 
 # Training and testing sets
-Train <- read.table("Train Set.txt", header = TRUE)
-Test  <- read.table("Test Set.txt", header = TRUE)
+Train <- read.table("Parkinson Train Set.txt", header = TRUE)
+Test  <- read.table("Parkinson Test Set.txt", header = TRUE)
 
 # Split features and class of training and testing sets
 TrainClass    <- Train[ ,ncol(Train)]  # Training class
