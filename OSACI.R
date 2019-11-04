@@ -121,8 +121,7 @@ OSACI <- function(OSACIVariant, L, S, d, Q, k, EPSILON, TauMax, lambda) {
   if (OSACIVariant %in% c("OSACI-Update")) { 
     
     for (i in seq_len(S)) {
-      Candidates[i, ] <- round(runif(d, round(runif(d, 0, 0)),
-                                     round(runif(d, 1, 1))))
+      Candidates[i, ] <- round(runif(d, 0, 1))
     }
   }
   
