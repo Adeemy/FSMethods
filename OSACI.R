@@ -96,10 +96,10 @@ OSACI <- function(OSACIVariant, L, S, d, Q, k, EPSILON, TauMax, lambda) {
   }
   
   # Allocate matrices to save "for" loops outputs
-  Candidates <- matrix(as.double(NA), nrow = S, ncol = d)
-  BestObjVal <- matrix(as.double(NA), nrow = L, ncol = 2)
-  Results    <- matrix(as.double(NA), nrow = L, ncol = d + 1)
-  Behaviors  <- matrix(as.double(NA), nrow = Q * S, ncol = d)
+  Candidates <- matrix(NA, nrow = S, ncol = d)
+  BestObjVal <- matrix(NA, nrow = L, ncol = 2)
+  Results    <- matrix(NA, nrow = L, ncol = d + 1)
+  Behaviors  <- matrix(NA, nrow = Q * S, ncol = d)
   
   ## Generate initial candidates
   
