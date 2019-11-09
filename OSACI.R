@@ -13,7 +13,8 @@ library(pROC)
 library(caret)
 library(doParallel)
 
-# Training and testing sets
+# Training and testing sets (Source: UCI repository
+# (https://archive.ics.uci.edu/ml/datasets/Parkinson+Dataset+with+replicated+acoustic+features+)
 Train <- read.table("Parkinson Train Set.txt", header = TRUE)
 Test  <- read.table("Parkinson Test Set.txt", header = TRUE)
 
