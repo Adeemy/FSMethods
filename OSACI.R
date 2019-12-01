@@ -14,7 +14,7 @@ library(caret)
 library(doParallel)
 
 # Training and testing sets (Source: UCI repository
-# (https://archive.ics.uci.edu/ml/datasets/Parkinson+Dataset+with+replicated+acoustic+features+)
+# https://archive.ics.uci.edu/ml/datasets/Parkinson+Dataset+with+replicated+acoustic+features+)
 Train <- read.table("Parkinson Train Set.txt", header = TRUE)
 Test  <- read.table("Parkinson Test Set.txt", header = TRUE)
 
@@ -42,37 +42,40 @@ TrainControl <- trainControl(method          = "repeatedcv",
 ObjFun <- function(Solutions, d, lambda) {
   
   ObjFunValue <- data.frame(ObjFunValue = rep(NA, (nrow(Solutions))))
-  Solutions   <- foreach(j = seq_len(nrow(Solutions)), .inorder = FALSE, .combine = 'rbind',
-                         .verbose = FALSE) %dopar% {
+  Solutions   <- foreach(j = seq_len(nrow(Solutions)), .combine = 'rbind', .verbose = FALSE) %dopar% {
                            
-                           # Repair any solution with no selected features by selecting one feature randomly
-                           if (sum(Solutions[j, ]) == 0) {
-                             Solutions[j, sample(seq_len(d), size = 1)] <- 1
-                           }  
-                           
-                           # Training set with selected feature subset
-                           SelF <- as.data.frame(TrainFeatures[ ,which(Solutions[j, ] == 1)])
-                           
-                           # Train Decision Tree (DT) on training set with selected feature subset
-                           DT_model <- train(SelF, TrainClass, method = "rpart", metric = "ROC", 
-                                             parms = list(split = "information"),
-                                             tuneLength = 10, trControl = TrainControl)
-                           
-                           # Fitness value (behavior)
-                           ObjFunValue[j, ] <- ((lambda * max(DT_model$results$ROC)) + ((1 - lambda) * (d - ncol(SelF))/d))
-                           return(cbind(t(Solutions[j, ]), ObjFunValue[j, ]))
-                         }
+                   # Repair any solution with no selected features by selecting one feature randomly
+                   if (sum(Solutions[j, ]) == 0) {
+                     Solutions[j, sample(seq_len(d), size = 1)] <- 1
+                   }  
+                   
+                   # Training set with selected feature subset
+                   SelF <- as.data.frame(TrainFeatures[ ,which(Solutions[j, ] == 1)])
+                   
+                   # Train Decision Tree (DT) on training set with selected feature subset
+                   DT_model <- train(SelF, TrainClass, method = "rpart", metric = "ROC", 
+                                     parms = list(split = "information"),
+                                     tuneLength = 10, trControl = TrainControl)
+                   
+                   # Fitness value (behavior)
+                   ObjFunValue[j, ] <- ((lambda * max(DT_model$results$ROC)) + ((1 - lambda) * (d - ncol(SelF))/d))
+                   return(cbind(t(Solutions[j, ]), ObjFunValue[j, ]))
+                 }
   return(Solutions)
 }
 
 ######################################################################################
 ## OSACI algorithms
 
-OSACI <- function(OSACIVariant, L, S, d, Q, k, EPSILON, TauMax, lambda) {
+OSACI <- function(OSACIVariant, L, S, d, Q, k = 2, EPSILON = 0, TauMax = Inf, lambda = 0.9) {
   
   ## Check input parameters
   
-  if (S < 2 || missing(S)) {
+  if (is.null(OSACIVariant) || !OSACIVariant %in% c("OSACI-Init", "OSACI-Update", "OSACI-Init_Update")) {  
+    stop('OSACI variation must be "OSACI-Init", "OSACI-Update", or "OSACI-Init_Update"')
+  }
+  
+  if (!is.numeric(S) || S < 2 || missing(S)) {
     stop("No. of candidates must be greater than 2")
   }
   
@@ -80,20 +83,20 @@ OSACI <- function(OSACIVariant, L, S, d, Q, k, EPSILON, TauMax, lambda) {
     stop("No. of candidates must be even")
   }
   
-  if (Q < 2 || missing(Q)) {
-    warning("No. of quality variations must be greater than 2")
+  if (!is.numeric(d) || d < 2 || missing(d)) {
+    stop("No. of original features must be specified!")
   }
   
-  if (L < 1 || missing(L)) {
-    stop("The max. no. of learning attempts must be greater than 0")
+  if (!is.numeric(Q) || Q < 2 || missing(Q)) {
+    stop("No. of quality variations must be greater than 2")
   }
   
-  if (is.null(TauMax) == TRUE || missing(TauMax)) {
-    TauMax <- Inf
+  if (!is.numeric(L) || L < 1 || missing(L)) {
+    stop("Max. no. of learning attempts must be greater than 0")
   }
   
-  if (is.null(EPSILON) == TRUE || missing(EPSILON)) {
-    EPSILON <- 0
+  if (!is.numeric(lambda) || is.null(lambda) || lambda > 1 || lambda < 0) {
+    stop("lambda value must be less than 1 and greater than 0")
   }
   
   # Allocate matrices to save "for" loops outputs
@@ -129,7 +132,7 @@ OSACI <- function(OSACIVariant, L, S, d, Q, k, EPSILON, TauMax, lambda) {
   # Evaluate initial Candidates  
   Candidates <- ObjFun(Candidates, d, lambda)
   
-  # Initiate a counters
+  # Initiate counters
   Tau <- 0
   l   <- 1
   
@@ -312,17 +315,14 @@ Results   <- OSACI(OSACIVariant = "OSACI-Init",        # "OSACI-Init", "OSACI-Up
                    S = 10,                             # No. of candidates
                    d = ncol(TrainFeatures),            # No. of features 
                    Q = 10,                             # No. of quality variations (solutions sampled from neighborhood)
-                   k = 2,                              # Tournament size
-                   EPSILON = NULL,                     # Convergence tolerence
-                   TauMax = NULL,                      # No. of successive learning attempts for cohort saturation
-                   lambda = 0.9                        # Trade-off factor in fitness function (lambda*AUC + (1-lambda)*Dim. Reduction)
+                   k = 2,                              # Tournament size (Default = 2)
+                   EPSILON = 0,                        # Convergence tolerence (Default = 0)
+                   TauMax = Inf,                       # No. of successive learning attempts for cohort saturation (Default = Inf)
+                   lambda = 0.9                        # Trade-off factor in fitness function (Default = 0.9)
 )
 
 # CPU time
 RunTime <- (proc.time() - StartTime)[3]
-
-## Shut down workers of the cluster
-stopCluster(clust)
 
 # Best solution
 Sol <- Results[which.max(Results[ ,ncol(Train)]), ]
@@ -347,3 +347,6 @@ SpecTest <- round(TestPred$byClass[2], 3)[1]
 
 # AUC
 ROCTest <- round(roc(as.factor(TestClass), as.numeric(predict(DTmodel, Test[ ,SelectedFeatures])))$auc[1], 3)
+
+## Shut down workers of the cluster
+stopCluster(clust)
