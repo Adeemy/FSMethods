@@ -4,7 +4,7 @@
 ## Paper: "New feature selection methods based on opposition-based learning and 
 ##         self-adaptive cohort intelligence for predicting patient no-shows"
 ## Authors: Mohammed Aladeemy, Linda Adwan, Amy Booth, Mohammad T. Khasawneh, and Srikanth Poranki
-## Corresponding author: Mohammed Aladeemy (mohammed.aladeemy@gmail.com)
+## Corresponding author: Mohammed Aladeemy (mohammed.aladeemy@outlook.com)
 ## DOI: https://doi.org/10.1016/j.asoc.2019.105866
 ##################################################################################################
 
