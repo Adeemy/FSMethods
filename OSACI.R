@@ -337,7 +337,7 @@ DTmodel <- train(as.data.frame(TrainFeatures[ ,SelectedFeatures]), TrainClass,
 
 ## Performance measures on testing set
 TestPred <- confusionMatrix(data = predict(DTmodel, TestFeatures[ ,SelectedFeatures]),
-                            reference = TestClass, positive = levels(TestClass)[1])
+                            reference = factor(TestClass), positive = levels(factor(TestClass))[2])
 
 # Sensitivity (true positive rate)
 SensTest <- round(TestPred$byClass[1], 3)[1]
